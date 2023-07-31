@@ -55,22 +55,32 @@ import threading
 from queue import Queue
 import time
 
-total_queries = 10
+total_queries = 2048
 
 
 # Define a function to process a batch of inputs
 def process_batch(q):
+    # while not q.empty():
+    #     item = q.get()
+    #     _cross_encode(query=item['query'], texts=item['texts'])
+    #     q.task_done()
     while not q.empty():
         item = q.get()
         _cross_encode(query=item['query'], texts=item['texts'])
         q.task_done()
+
+        # Adding code to track GPU usage
+        stats = gpustat.GPUStatCollection.new_query()
+        for gpu in stats:
+            print(f"GPU {gpu.index} - Load: {gpu.load}% | Memory used: {gpu.memory_used} MB | Memory total: {gpu.memory_total} MB")
+
 
 
 # Create a list of queries to be processed
 query_list = [{"query": query, "texts": texts} for _ in range(total_queries)]
 
 # Benchmark for different concurrency levels
-for num_threads in [1, 2, 4, 8, 16]:
+for num_threads in [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]:
     # Put all queries in a queue
     q = Queue()
     for item in query_list:
@@ -95,4 +105,9 @@ for num_threads in [1, 2, 4, 8, 16]:
     total_time = end_time - start_time
     latency = total_time / total_queries
     throughput = total_queries / total_time
-    print(f"Concurrency Level: {num_threads}, Latency: {latency:.3f}s, Throughput: {throughput:.3f} queries/s")
+
+    # Print GPU usage after each wrap-up
+    print("GPU usage statistics:")
+    stats = gpustat.GPUStatCollection.new_query()
+    for gpu in stats:
+        print(f"GPU {gpu.index} - Load: {gpu.load}% | Memory used: {gpu.memory_used} MB | Memory total: {gpu.memory_total} MB")
