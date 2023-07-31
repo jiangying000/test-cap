@@ -35,6 +35,10 @@ def _cross_encode(query, texts, cross_encoder=cross_encoder):
 
 query = "S4210-8GE2XF-I-AC 電源 電圧 範囲"
 from texts import texts
+
+# len texts 30 46792
+# t311 cross_encoder 15.972991943359375
+
 print('len texts', len(texts), sum(len(s) for s in texts))
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
