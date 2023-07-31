@@ -13,3 +13,27 @@ Concurrency Level: 8, Latency: 8.539s, Throughput: 0.117 queries/s
 
 
 gpu 3090
+
+GPU usage statistics:
+GPU 0 - Load: 91% | Memory used: 3544.6796875 MB | Memory total: 24576.0 MB
+Concurrency Level: 1, Latency: 0.132s, Throughput: 7.603 queries/s
+
+GPU usage statistics:
+GPU 0 - Load: 96% | Memory used: 4588.6796875 MB | Memory total: 24576.0 MB
+Concurrency Level: 2, Latency: 0.107s, Throughput: 9.336 queries/s
+
+GPU usage statistics:
+GPU 0 - Load: 97% | Memory used: 5670.9765625 MB | Memory total: 24576.0 MB
+Concurrency Level: 4, Latency: 0.106s, Throughput: 9.449 queries/s
+
+GPU usage statistics:
+GPU 0 - Load: 95% | Memory used: 8942.7265625 MB | Memory total: 24576.0 MB
+Concurrency Level: 8, Latency: 0.106s, Throughput: 9.391 queries/s
+
+GPU usage statistics:
+GPU 0 - Load: 98% | Memory used: 12851.1640625 MB | Memory total: 24576.0 MB
+Concurrency Level: 16, Latency: 0.109s, Throughput: 9.197 queries/s
+
+GPU usage statistics:
+GPU 0 - Load: 96% | Memory used: 21613.0390625 MB | Memory total: 24576.0 MB
+Concurrency Level: 32, Latency: 0.108s, Throughput: 9.268 queries/s
