@@ -72,15 +72,14 @@ def report_gpu_usage():
         print(f"GPU {i} - Load: {util.gpu}% | Memory used: {info.used / (1024**2)} MB | Memory total: {info.total / (1024**2)} MB")
 
 
-# Define a function to process a batch of inputs
-def process_batch(q):
-    # while not q.empty():
-    #     item = q.get()
-    #     _cross_encode(query=item['query'], texts=item['texts'])
-    #     q.task_done()
+def process_batch(q, latencies):
     while not q.empty():
         item = q.get()
+        start_time = time.time()
         _cross_encode(query=item['query'], texts=item['texts'])
+        end_time = time.time()
+        latency = end_time - start_time
+        latencies.append(latency)
         q.task_done()
         # Adding code to track GPU usage
         # report_gpu_usage()
@@ -100,8 +99,9 @@ for num_threads in [1, 2, 4, 8, 16, 32]:
 
     # Create threads to process the queries
     threads = []
+    latencies = []
     for _ in range(num_threads):
-        t = threading.Thread(target=process_batch, args=(q,))
+        t = threading.Thread(target=process_batch, args=(q, latencies))
         t.start()
         threads.append(t)
 
@@ -113,9 +113,9 @@ for num_threads in [1, 2, 4, 8, 16, 32]:
 
     # Calculate latency and throughput
     total_time = end_time - start_time
-    latency = total_time / total_queries
+    avg_latency = sum(latencies) / len(latencies)
     throughput = total_queries / total_time
 
     # Print GPU usage after each wrap-up
     report_gpu_usage()
-    print(f"Concurrency Level: {num_threads}, Latency: {latency:.3f}s, Throughput: {throughput:.3f} queries/s\n")
+    print(f"Concurrency Level: {num_threads}, Avg. Latency: {avg_latency:.3f}s, Throughput: {throughput:.3f} queries/s\n")
