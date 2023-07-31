@@ -2,10 +2,11 @@ from sentence_transformers import CrossEncoder
 
 import torch
 
+gpu = torch.cuda.is_available()
 print("Is GPU available: ", torch.cuda.is_available())
-print("GPU Device Name: ", torch.cuda.get_device_name())
 
 if torch.cuda.is_available():
+    print("GPU Device Name: ", torch.cuda.get_device_name())
     cross_encoder = CrossEncoder('cross-encoder/mmarco-mMiniLMv2-L12-H384-v1', device='cuda')
 else:
     cross_encoder = CrossEncoder('cross-encoder/mmarco-mMiniLMv2-L12-H384-v1')
@@ -58,11 +59,12 @@ from queue import Queue
 import time
 
 total_queries = 128
-from py3nvml.py3nvml import *
+if gpu:
+    from py3nvml.py3nvml import *
+    nvmlInit()
+    device_count = nvmlDeviceGetCount()
 
 # Initialize GPU library and discover the number of GPUs
-nvmlInit()
-device_count = nvmlDeviceGetCount()
 
 # Function to report GPU usage
 def report_gpu_usage():
@@ -119,5 +121,6 @@ for num_threads in [1, 2, 4, 8, 16, 32]:
     throughput = total_queries / total_time
 
     # Print GPU usage after each wrap-up
-    report_gpu_usage()
+    if gpu:
+        report_gpu_usage()
     print(f"Concurrency Level: {num_threads}, Avg. Latency: {avg_latency:.3f}s, Throughput: {throughput:.3f} queries/s\n")
