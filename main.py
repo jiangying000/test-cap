@@ -55,7 +55,21 @@ import threading
 from queue import Queue
 import time
 
-total_queries = 2048
+total_queries = 128
+from py3nvml.py3nvml import *
+
+# Initialize GPU library and discover the number of GPUs
+nvmlInit()
+device_count = nvmlDeviceGetCount()
+
+# Function to report GPU usage
+def report_gpu_usage():
+    print("GPU usage statistics:")
+    for i in range(device_count):
+        handle = nvmlDeviceGetHandleByIndex(i)
+        info = nvmlDeviceGetMemoryInfo(handle)
+        util = nvmlDeviceGetUtilizationRates(handle)
+        print(f"GPU {i} - Load: {util.gpu}% | Memory used: {info.used / (1024**2)} MB | Memory total: {info.total / (1024**2)} MB")
 
 
 # Define a function to process a batch of inputs
@@ -68,19 +82,15 @@ def process_batch(q):
         item = q.get()
         _cross_encode(query=item['query'], texts=item['texts'])
         q.task_done()
-
         # Adding code to track GPU usage
-        stats = gpustat.GPUStatCollection.new_query()
-        for gpu in stats:
-            print(f"GPU {gpu.index} - Load: {gpu.load}% | Memory used: {gpu.memory_used} MB | Memory total: {gpu.memory_total} MB")
-
+        # report_gpu_usage()
 
 
 # Create a list of queries to be processed
 query_list = [{"query": query, "texts": texts} for _ in range(total_queries)]
 
-# Benchmark for different concurrency levels
-for num_threads in [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]:
+# Benchmark for different concurrency levels, 500m gpu mem per request
+for num_threads in [1, 2, 4, 8, 16, 32]:
     # Put all queries in a queue
     q = Queue()
     for item in query_list:
@@ -107,7 +117,5 @@ for num_threads in [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]:
     throughput = total_queries / total_time
 
     # Print GPU usage after each wrap-up
-    print("GPU usage statistics:")
-    stats = gpustat.GPUStatCollection.new_query()
-    for gpu in stats:
-        print(f"GPU {gpu.index} - Load: {gpu.load}% | Memory used: {gpu.memory_used} MB | Memory total: {gpu.memory_total} MB")
+    report_gpu_usage()
+    print(f"Concurrency Level: {num_threads}, Latency: {latency:.3f}s, Throughput: {throughput:.3f} queries/s\n")
