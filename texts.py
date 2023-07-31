@@ -13,6 +13,7 @@ and other security features
 
 FlexLink, LACP and ERRP
 
+
 ⚫ Support remote loop detection function
 ⚫ Support CFM、EFM
 ⚫ Support remote user authentication based on 
