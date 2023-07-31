@@ -1,6 +1,14 @@
 from sentence_transformers import CrossEncoder
 
-cross_encoder = CrossEncoder('cross-encoder/mmarco-mMiniLMv2-L12-H384-v1')
+import torch
+
+print("Is GPU available: ", torch.cuda.is_available())
+print("GPU Device Name: ", torch.cuda.get_device_name())
+
+if torch.cuda.is_available():
+    cross_encoder = CrossEncoder('cross-encoder/mmarco-mMiniLMv2-L12-H384-v1', device='cuda')
+else:
+    cross_encoder = CrossEncoder('cross-encoder/mmarco-mMiniLMv2-L12-H384-v1')
 
 
 def timeit(f):
