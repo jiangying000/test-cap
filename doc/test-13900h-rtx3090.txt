@@ -1,0 +1,15 @@
+cpu 13900h
+Concurrency Level: 1, Latency: 7.320s, Throughput: 0.137 queries/s
+Concurrency Level: 2, Latency: 4.833s, Throughput: 0.207 queries/s
+Concurrency Level: 4, Latency: 4.527s, Throughput: 0.221 queries/s
+Concurrency Level: 8, Latency: 4.544s, Throughput: 0.220 queries/s
+Concurrency Level: 16, Latency: 4.275s, Throughput: 0.234 queries/s
+
+cpu 5600g
+Concurrency Level: 1, Latency: 13.627s, Throughput: 0.073 queries/s
+Concurrency Level: 2, Latency: 10.126s, Throughput: 0.099 queries/s
+Concurrency Level: 4, Latency: 8.508s, Throughput: 0.118 queries/s
+Concurrency Level: 8, Latency: 8.539s, Throughput: 0.117 queries/s
+
+
+gpu 3090
