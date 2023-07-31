@@ -42,6 +42,8 @@ def _cross_encode(query, texts, cross_encoder=cross_encoder):
 query = "S4210-8GE2XF-I-AC 電源 電圧 範囲"
 from texts import texts
 
+# texts = texts[:10]
+
 # len texts 30 46792
 # t311 cross_encoder 15.972991943359375
 

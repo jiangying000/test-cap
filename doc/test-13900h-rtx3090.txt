@@ -40,5 +40,29 @@ GPU 0 - Load: 91% | Memory used: 19693.6015625 MB | Memory total: 24576.0 MB
 Concurrency Level: 32, Avg. Latency: 3.338s, Throughput: 9.314 queries/s
 --------------------------------------------
 
+len texts 10 13503
+GPU usage statistics:
+GPU 0 - Load: 84% | Memory used: 3134.76171875 MB | Memory total: 24576.0 MB
+Concurrency Level: 1, Avg. Latency: 0.054s, Throughput: 18.522 queries/s
+
+GPU usage statistics:
+GPU 0 - Load: 89% | Memory used: 3612.01171875 MB | Memory total: 24576.0 MB
+Concurrency Level: 2, Avg. Latency: 0.076s, Throughput: 26.231 queries/s
+
+GPU usage statistics:
+GPU 0 - Load: 96% | Memory used: 4104.01171875 MB | Memory total: 24576.0 MB
+Concurrency Level: 4, Avg. Latency: 0.145s, Throughput: 27.351 queries/s
+
+GPU usage statistics:
+GPU 0 - Load: 98% | Memory used: 4856.01171875 MB | Memory total: 24576.0 MB
+Concurrency Level: 8, Avg. Latency: 0.285s, Throughput: 27.666 queries/s
+
+GPU usage statistics:
+GPU 0 - Load: 98% | Memory used: 6241.88671875 MB | Memory total: 24576.0 MB
+Concurrency Level: 16, Avg. Latency: 0.566s, Throughput: 27.544 queries/s
 
 
+GPU usage statistics:
+GPU 0 - Load: 97% | Memory used: 9651.88671875 MB | Memory total: 24576.0 MB
+Concurrency Level: 32, Avg. Latency: 1.125s, Throughput: 27.268 queries/s
+--------------------------------------------
