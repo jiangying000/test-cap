@@ -1,5 +1,3 @@
-import time
-
 from sentence_transformers import CrossEncoder
 
 cross_encoder = CrossEncoder('cross-encoder/mmarco-mMiniLMv2-L12-H384-v1')
@@ -41,6 +39,52 @@ from texts import texts
 
 print('len texts', len(texts), sum(len(s) for s in texts))
 # Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    # predict(timing=True)
-    _cross_encode(query=query, texts=texts)
+# if __name__ == '__main__':
+#     # predict(timing=True)
+#     _cross_encode(query=query, texts=texts)
+
+import threading
+from queue import Queue
+import time
+
+total_queries = 10
+
+
+# Define a function to process a batch of inputs
+def process_batch(q):
+    while not q.empty():
+        item = q.get()
+        _cross_encode(query=item['query'], texts=item['texts'])
+        q.task_done()
+
+
+# Create a list of queries to be processed
+query_list = [{"query": query, "texts": texts} for _ in range(total_queries)]
+
+# Benchmark for different concurrency levels
+for num_threads in [1, 2, 4, 8, 16]:
+    # Put all queries in a queue
+    q = Queue()
+    for item in query_list:
+        q.put(item)
+
+    start_time = time.time()
+
+    # Create threads to process the queries
+    threads = []
+    for _ in range(num_threads):
+        t = threading.Thread(target=process_batch, args=(q,))
+        t.start()
+        threads.append(t)
+
+    # Join the threads to wait for all of them to finish
+    for t in threads:
+        t.join()
+
+    end_time = time.time()
+
+    # Calculate latency and throughput
+    total_time = end_time - start_time
+    latency = total_time / total_queries
+    throughput = total_queries / total_time
+    print(f"Concurrency Level: {num_threads}, Latency: {latency:.3f}s, Throughput: {throughput:.3f} queries/s")
