@@ -40,20 +40,6 @@ def _cross_encode(query, texts, cross_encoder=cross_encoder):
     return final_result
 
 
-query = "S4210-8GE2XF-I-AC 電源 電圧 範囲"
-from texts import texts
-
-# texts = texts[:10]
-
-# len texts 30 46792
-# t311 cross_encoder 15.972991943359375
-
-print('len texts', len(texts), sum(len(s) for s in texts))
-# Press the green button in the gutter to run the script.
-# if __name__ == '__main__':
-#     # predict(timing=True)
-#     _cross_encode(query=query, texts=texts)
-
 import threading
 from queue import Queue
 import time
@@ -89,38 +75,53 @@ def process_batch(q, latencies):
         # report_gpu_usage()
 
 
-# Create a list of queries to be processed
-query_list = [{"query": query, "texts": texts} for _ in range(total_queries)]
+if __name__ == '__main__':
+    query = "S4210-8GE2XF-I-AC 電源 電圧 範囲"
+    from texts import texts
 
-# Benchmark for different concurrency levels, 500m gpu mem per request
-for num_threads in [1, 2, 4, 8, 16, 32]:
-    # Put all queries in a queue
-    q = Queue()
-    for item in query_list:
-        q.put(item)
+    # texts = texts[:10]
 
-    start_time = time.time()
+    # len texts 30 46792
+    # t311 cross_encoder 15.972991943359375
 
-    # Create threads to process the queries
-    threads = []
-    latencies = []
-    for _ in range(num_threads):
-        t = threading.Thread(target=process_batch, args=(q, latencies))
-        t.start()
-        threads.append(t)
+    print('len texts', len(texts), sum(len(s) for s in texts))
+    # Press the green button in the gutter to run the script.
+    # if __name__ == '__main__':
+    #     # predict(timing=True)
+    #     _cross_encode(query=query, texts=texts)
 
-    # Join the threads to wait for all of them to finish
-    for t in threads:
-        t.join()
+    # Create a list of queries to be processed
+    query_list = [{"query": query, "texts": texts} for _ in range(total_queries)]
 
-    end_time = time.time()
+    # Benchmark for different concurrency levels, 500m gpu mem per request
+    for num_threads in [1, 2, 4, 8, 16, 32]:
+        # Put all queries in a queue
+        q = Queue()
+        for item in query_list:
+            q.put(item)
 
-    # Calculate latency and throughput
-    total_time = end_time - start_time
-    avg_latency = sum(latencies) / len(latencies)
-    throughput = total_queries / total_time
+        start_time = time.time()
 
-    # Print GPU usage after each wrap-up
-    if gpu:
-        report_gpu_usage()
-    print(f"Concurrency Level: {num_threads}, Avg. Latency: {avg_latency:.3f}s, Throughput: {throughput:.3f} queries/s\n")
+        # Create threads to process the queries
+        threads = []
+        latencies = []
+        for _ in range(num_threads):
+            t = threading.Thread(target=process_batch, args=(q, latencies))
+            t.start()
+            threads.append(t)
+
+        # Join the threads to wait for all of them to finish
+        for t in threads:
+            t.join()
+
+        end_time = time.time()
+
+        # Calculate latency and throughput
+        total_time = end_time - start_time
+        avg_latency = sum(latencies) / len(latencies)
+        throughput = total_queries / total_time
+
+        # Print GPU usage after each wrap-up
+        if gpu:
+            report_gpu_usage()
+        print(f"Concurrency Level: {num_threads}, Avg. Latency: {avg_latency:.3f}s, Throughput: {throughput:.3f} queries/s\n")
