@@ -18,18 +18,18 @@ class CustomJSONEncoder(json.JSONEncoder):
             return float(obj)
         return super(CustomJSONEncoder, self).default(obj)
 
-def validate_request(api_key, query, docs):
+def validate_request(api_key, query, passages):
     if api_key is None or api_key != API_KEY:
         return False, jsonify({'error': 'Invalid API key'}), 401
 
-    if query is None or docs is None:
-        return False, jsonify({'error': 'Missing query or docs parameters'}), 400
+    if query is None or passages is None:
+        return False, jsonify({'error': 'Missing query or passages parameters'}), 400
 
     if not isinstance(query, str):
         return False, jsonify({'error': 'query must be a string'}), 400
 
-    if not isinstance(docs, list) or not all(isinstance(text, str) for text in docs):
-        return False, jsonify({'error': 'docs must be a list of strings'}), 400
+    if not isinstance(passages, list) or not all(isinstance(text, str) for text in passages):
+        return False, jsonify({'error': 'passages must be a list of strings'}), 400
 
     return True, None, None
 
@@ -56,7 +56,7 @@ semaphore = threading.Semaphore(MAX_CONCURRENCY)
 def process_request(q):
     with semaphore:
         item = q.get()
-        _cross_encode(query=item['query'], texts=item['docs'])
+        _cross_encode(query=item['query'], texts=item['passages'])
         q.task_done()
 
 @app.route('/cross-encode', methods=['POST'])
@@ -66,23 +66,23 @@ def process():
         return jsonify({'error': 'Invalid API key'}), 401
 
     query = request.json.get('query')
-    docs = request.json.get('docs')
+    passages = request.json.get('passages')
 
-    if query is None or docs is None:
-        return jsonify({'error': 'Missing query or docs parameters'}), 400
+    if query is None or passages is None:
+        return jsonify({'error': 'Missing query or passages parameters'}), 400
 
     if not isinstance(query, str):
         return jsonify({'error': 'query must be a string'}), 400
 
-    if not isinstance(docs, list) or not all(isinstance(text, str) for text in docs):
-        return jsonify({'error': 'docs must be a list of strings'}), 400
+    if not isinstance(passages, list) or not all(isinstance(text, str) for text in passages):
+        return jsonify({'error': 'passages must be a list of strings'}), 400
 
     # q = Queue()
-    # q.put({'query': query, 'docs': docs})
+    # q.put({'query': query, 'passages': passages})
     # t = threading.Thread(target=process_request, args=(q,))
     # t.start()
-    # response = _cross_encode(query=query, texts=docs)
-    response = compute_similarity(query=query, passages=docs)
+    # response = _cross_encode(query=query, texts=passages)
+    response = compute_similarity(query=query, passages=passages)
     converted_response = convert_float32(response)
 
     # return jsonify(converted_response), 200
