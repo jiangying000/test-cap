@@ -53,15 +53,18 @@ def compute_similarity(query, passages, encoder=cross_encoder):
     sorted_indices_scores = sorted(
         enumerate(similarity_scores, start=0), key=lambda x: -x[1])
 
-    results = [
-        {
+    results = {
+        'took': elapsed_time,
+        'data': [
+            {
             'score': score,
             'reranked_index': i,
             'original_index': index,
             'passage': passages[index]
         }
         for i, (index, score) in enumerate(sorted_indices_scores, start=0)
-    ]
+        ]
+    }
 
     return results
 
