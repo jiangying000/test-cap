@@ -5,7 +5,7 @@ from queue import Queue
 
 import numpy as np
 
-from main import _cross_encode, compute_similarity
+from main import compute_similarity
 
 # def convert_float32(response):
 #     return {
