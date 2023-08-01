@@ -5,13 +5,33 @@ from queue import Queue
 
 import numpy as np
 
-from main import compute_similarity
+from main import _cross_encode, compute_similarity
+
+# def convert_float32(response):
+#     return {
+#         key: self.encode_float32(value) for key, value in response.items()
+#     }
 
 class CustomJSONEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, np.float32):
             return float(obj)
         return super(CustomJSONEncoder, self).default(obj)
+
+def validate_request(api_key, query, docs):
+    if api_key is None or api_key != API_KEY:
+        return False, jsonify({'error': 'Invalid API key'}), 401
+
+    if query is None or docs is None:
+        return False, jsonify({'error': 'Missing query or docs parameters'}), 400
+
+    if not isinstance(query, str):
+        return False, jsonify({'error': 'query must be a string'}), 400
+
+    if not isinstance(docs, list) or not all(isinstance(text, str) for text in docs):
+        return False, jsonify({'error': 'docs must be a list of strings'}), 400
+
+    return True, None, None
 
 def convert_float32(data):
     if isinstance(data, dict):
@@ -36,7 +56,7 @@ semaphore = threading.Semaphore(MAX_CONCURRENCY)
 def process_request(q):
     with semaphore:
         item = q.get()
-        compute_similarity(query=item['query'], texts=item['docs'])
+        _cross_encode(query=item['query'], texts=item['docs'])
         q.task_done()
 
 @app.route('/cross-encode', methods=['POST'])
@@ -61,7 +81,8 @@ def process():
     # q.put({'query': query, 'docs': docs})
     # t = threading.Thread(target=process_request, args=(q,))
     # t.start()
-    response = compute_similarity(query=query, texts=docs)
+    # response = _cross_encode(query=query, texts=docs)
+    response = compute_similarity(query=query, passages=docs)
     converted_response = convert_float32(response)
 
     # return jsonify(converted_response), 200
