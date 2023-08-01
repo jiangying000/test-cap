@@ -5,7 +5,7 @@ from queue import Queue
 
 import numpy as np
 
-from main import _cross_encode
+from main import compute_similarity
 
 class CustomJSONEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -36,7 +36,7 @@ semaphore = threading.Semaphore(MAX_CONCURRENCY)
 def process_request(q):
     with semaphore:
         item = q.get()
-        _cross_encode(query=item['query'], texts=item['docs'])
+        compute_similarity(query=item['query'], texts=item['docs'])
         q.task_done()
 
 @app.route('/cross-encode', methods=['POST'])
@@ -61,7 +61,7 @@ def process():
     # q.put({'query': query, 'docs': docs})
     # t = threading.Thread(target=process_request, args=(q,))
     # t.start()
-    response = _cross_encode(query=query, texts=docs)
+    response = compute_similarity(query=query, texts=docs)
     converted_response = convert_float32(response)
 
     # return jsonify(converted_response), 200
@@ -70,9 +70,6 @@ def process():
 
     # Return the serialized data using the Response class
     return Response(serialized_data, content_type="application/json", status=200)
-1
-
-
     # return jsonify({'status': 'processing'}), 202
 
 # @app.after_request

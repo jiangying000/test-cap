@@ -1,3 +1,6 @@
+from queue import Queue
+import threading
+import time
 from sentence_transformers import CrossEncoder
 
 import torch
@@ -7,7 +10,8 @@ print("Is GPU available: ", torch.cuda.is_available())
 
 if torch.cuda.is_available():
     print("GPU Device Name: ", torch.cuda.get_device_name())
-    cross_encoder = CrossEncoder('cross-encoder/mmarco-mMiniLMv2-L12-H384-v1', device='cuda')
+    cross_encoder = CrossEncoder(
+        'cross-encoder/mmarco-mMiniLMv2-L12-H384-v1', device='cuda')
 else:
     cross_encoder = CrossEncoder('cross-encoder/mmarco-mMiniLMv2-L12-H384-v1')
 
@@ -24,35 +28,49 @@ def predict(timing=True):
         scores = timeit(
             lambda: cross_encoder.predict([['Query', 'Paragraph1'], ['Query', 'Paragraph2'], ['Query', 'Paragraph3']]))
     else:
-        scores = cross_encoder.predict([['Query', 'Paragraph1'], ['Query', 'Paragraph2'], ['Query', 'Paragraph3']])
+        scores = cross_encoder.predict(
+            [['Query', 'Paragraph1'], ['Query', 'Paragraph2'], ['Query', 'Paragraph3']])
     print('score', scores)
 
 
-def _cross_encode(query, texts, cross_encoder=cross_encoder):
-    time2 = time.time()
-    # if len(bm25_hits) > 0:
-    scores = cross_encoder.predict([[query, text] for text in texts])
-    print('t311 cross_encoder takes', time.time() - time2)
+# def compute_similarity(query, texts, cross_encoder=cross_encoder):
+#     time2 = time.time()
+#     # if len(bm25_hits) > 0:
+#     scores = cross_encoder.predict([[query, text] for text in texts])
+#     print('t311 cross_encoder takes', time.time() - time2)
 
-    result = [(item1, index, item2) for index, (item1, item2) in enumerate(zip(scores, texts), start=0)]
-    sorted_result = sorted(result, key=lambda x: -x[0])
-    final_result = [(item1, i, index, item2) for i, (item1, index, item2) in enumerate(sorted_result, start=0)]
-    return final_result
+#     result = [(item1, index, item2) for index, (item1, item2) in enumerate(zip(scores, texts), start=0)]
+#     sorted_result = sorted(result, key=lambda x: -x[0])
+#     final_result = [({'score': item1, 'reranked_index': i, 'original_index': index, 'doc': item2}) for i, (item1, index, item2) in enumerate(sorted_result, start=0)]
+#     return final_result
+def compute_similarity(query, passages, encoder=cross_encoder):
+    start_time = time.time()
+    query_passage_pairs = [(query, passage) for passage in passages]
+    similarity_scores = encoder.predict(query_passage_pairs)
+    elapsed_time = time.time() - start_time
+    print(f'Cross encoding took: {elapsed_time}')
 
+    sorted_indices_scores = sorted(
+        enumerate(similarity_scores, start=0), key=lambda x: -x[1])
 
-import threading
-from queue import Queue
-import time
+    results = [
+        {
+            'score': score,
+            'reranked_index': i,
+            'original_index': index,
+            'passage': passages[index]
+        }
+        for i, (index, score) in enumerate(sorted_indices_scores, start=0)
+    ]
 
-total_queries = 128
-if gpu:
-    from py3nvml.py3nvml import *
-    nvmlInit()
-    device_count = nvmlDeviceGetCount()
+    return results
+
 
 # Initialize GPU library and discover the number of GPUs
 
 # Function to report GPU usage
+
+
 def report_gpu_usage():
     print("GPU usage statistics:")
     for i in range(device_count):
@@ -66,7 +84,7 @@ def process_batch(q, latencies):
     while not q.empty():
         item = q.get()
         start_time = time.time()
-        _cross_encode(query=item['query'], texts=item['texts'])
+        compute_similarity(query=item['query'], texts=item['texts'])
         end_time = time.time()
         latency = end_time - start_time
         latencies.append(latency)
@@ -76,8 +94,13 @@ def process_batch(q, latencies):
 
 
 if __name__ == '__main__':
-    query = "S4210-8GE2XF-I-AC 電源 電圧 範囲"
     from texts import texts
+    total_queries = 128
+    if gpu:
+        from py3nvml.py3nvml import *
+        nvmlInit()
+        device_count = nvmlDeviceGetCount()
+        query = "S4210-8GE2XF-I-AC 電源 電圧 範囲"
 
     # texts = texts[:10]
 
@@ -91,7 +114,8 @@ if __name__ == '__main__':
     #     _cross_encode(query=query, texts=texts)
 
     # Create a list of queries to be processed
-    query_list = [{"query": query, "texts": texts} for _ in range(total_queries)]
+    query_list = [{"query": query, "texts": texts}
+                  for _ in range(total_queries)]
 
     # Benchmark for different concurrency levels, 500m gpu mem per request
     for num_threads in [1, 2, 4, 8, 16, 32]:
@@ -124,4 +148,5 @@ if __name__ == '__main__':
         # Print GPU usage after each wrap-up
         if gpu:
             report_gpu_usage()
-        print(f"Concurrency Level: {num_threads}, Avg. Latency: {avg_latency:.3f}s, Throughput: {throughput:.3f} queries/s\n")
+        print(
+            f"Concurrency Level: {num_threads}, Avg. Latency: {avg_latency:.3f}s, Throughput: {throughput:.3f} queries/s\n")
